@@ -4,22 +4,47 @@ window.onload = function() {
     game.fps = 24;
     game.enemy_speed = 1;
     game.preload('chara1.png', 'icon0.png');
-    enemies = new Array();
+    game.enemies = new Array();
+    
+    // Create the different scenes
+    var scenes = {
+	title : new Scene(),
+	action: new Scene(),
+	map : new Scene(),
+	end : createEndingScene()
+    };
+    game.scenes = scenes
+    scenes.title.backgroundColor = 'red';
+    scenes.map.backgroundColor = 'green';
+    scenes.action.backgroundColor = 'blue';
+    game.pushScene(scenes.action);
 
     game.onload = function() {
 	player = new Player(152,300);
 
-        game.rootScene.addEventListener('enterframe', function() {
+        game.scenes.action.addEventListener('enterframe', function() {
             if(this.age % 20 == 0){
                 var enemy = new Enemy(rand(320), -32);
-		enemies.push(enemy);
+		game.enemies.push(enemy);
             }
         });
     };
-
-    game.rootScene.backgroundColor = 'blue';
     game.start();
 };
+
+/* a level will have a series of timed triggers that summon
+enemies, effects / background changes, and powerups */
+
+function createEndingScene() {
+    var endScene = new Scene();
+    endScene.backgroundColor = 'black';
+    var text = new Label("You have died.");
+    text.color = 'red';
+    text.x = 100;
+    text.y = 320.0 / 2.0;
+    endScene.addChild(text);
+    return endScene;
+}
 
 var Player = enchant.Class.create(enchant.Sprite, {
     initialize: function(x,y) {
@@ -27,14 +52,14 @@ var Player = enchant.Class.create(enchant.Sprite, {
 	this.image = game.assets['icon0.png'];
 	this.x = x; this.y = y;
 	this.frame = 44;
-	game.rootScene.addEventListener('touchstart', function(e) {
+	game.scenes.action.addEventListener('touchstart', function(e) {
 	    player.x = e.x;
 	    game.touched = true;
 	});
-	game.rootScene.addEventListener('touchmove', function(e) {
+	game.scenes.action.addEventListener('touchmove', function(e) {
 	    player.x = e.x;
 	});
-	game.rootScene.addEventListener('touchend', function(e) {
+	game.scenes.action.addEventListener('touchend', function(e) {
 	    player.x = e.x;
 	    game.touched = false;
 	});
@@ -42,8 +67,14 @@ var Player = enchant.Class.create(enchant.Sprite, {
 	    if(game.touched && game.frame % 3 == 0) {
 		var s = new PlayerShoot(this.x,this.y);
 	    }
+	    for(var i in game.enemies) {
+		if(game.enemies[i].intersect(this)) {
+		    game.popScene();
+		    game.pushScene(game.scenes.end);
+		}
+	    }
 	});
-	game.rootScene.addChild(this);
+	game.scenes.action.addChild(this);
     }
 });
 
@@ -54,7 +85,7 @@ var Bear = enchant.Class.create(enchant.Sprite, {
 	this.y = y;
 	this.image = game.assets['chara1.png'];
 	this.frame = 5;
-	game.rootScene.addChild(this);
+	game.scenes.action.addChild(this);
     }
 });
 
@@ -70,7 +101,7 @@ var Enemy = enchant.Class.create(Bear, {
 	});
     },
     remove : function() {
-	game.rootScene.removeChild(this);
+	game.scenes.action.removeChild(this);
 	delete this;
     }
 });
@@ -91,10 +122,10 @@ var Shoot = enchant.Class.create(enchant.Sprite, {
 		this.remove();
 	    }
 	});
-	game.rootScene.addChild(this);
+	game.scenes.action.addChild(this);
     },
     remove: function () {
-	game.rootScene.removeChild(this);
+	game.scenes.action.removeChild(this);
 	delete this;
     }
 });
@@ -103,11 +134,11 @@ var PlayerShoot = enchant.Class.create(Shoot, {
     initialize: function (x, y) {
 	Shoot.call(this, x, y, -Math.PI/2.0);
 	this.addEventListener('enterframe', function () {
-	    for (var i in enemies) {
-		if(enemies[i].intersect(this)) {
+	    for (var i in game.enemies) {
+		if(game.enemies[i].intersect(this)) {
 		    this.remove();
-		    enemies[i].remove();
-		    enemies.splice(i,1);
+		    game.enemies[i].remove();
+		    game.enemies.splice(i,1);
 		    break;
 		}
 	    }
@@ -118,4 +149,5 @@ var PlayerShoot = enchant.Class.create(Shoot, {
 function isOutOfBounds(x, y, width, height) {
     return y > 320 || x > 320 || x < -width || y < -height;
 }
+
 function rand(num){ return Math.floor(Math.random() * num) };
