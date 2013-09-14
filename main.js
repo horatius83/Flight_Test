@@ -112,6 +112,7 @@ var Enemy = enchant.Class.create(Bear, {
 	this.firstFrame = game.frame;
 	this.addEventListener('enterframe', function() {
 	    this.y += game.enemy_speed;
+	    this.x = x + Math.sin(this.age);
 	    this.frame = [0, 1, 0, 2][Math.floor(this.age/5) % 4] + 5;
 	    if(isOutOfBounds(this.x, this.y, this.width, this.height)) {
 	    	this.remove();
