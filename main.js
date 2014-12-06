@@ -29,7 +29,7 @@ function createActionScene(game) {
     // if so for-each script item that is prepped to fire, generate an enemy of that type
 
     var scene = new Scene();
-    scene.backgroundColor = 'blue';
+    scene.backgroundColor = '#671F70';
    
     player = new Player(152,300);
     game.player = player;
