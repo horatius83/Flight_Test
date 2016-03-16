@@ -14,11 +14,11 @@ Point.prototype.add = function(p) {
 };
 
 Point.prototype.sub = function(p) {
-    return new Point(this.y - p.y, this.y - p.y);
+    return new Point(this.x - p.x, this.y - p.y);
 };
 
 Point.prototype.dot = function(p) {
-    return this.x * p.x + this.y + p.y;
+    return this.x * p.x + this.y * p.y;
 };
 
 Point.prototype.scalarMul = function(s) {
