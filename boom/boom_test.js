@@ -9,10 +9,10 @@ QUnit.test("Point.add test", function(assert) {
     var p0 = new Point(x0, y0);
     var p1 = new Point(x1, y1);
     var pr = p0.add(p1);
-    assert.ok(pr.x === x0 + x1, "x values added");
-    assert.ok(pr.y === y0 + y1, "y values added");
-    assert.ok(p0.x === x0, 'x value is immutable');
-    assert.ok(p0.y === y0, 'y value is immutable');
+    assert.ok(pr.x === x0 + x1, "x values was not added");
+    assert.ok(pr.y === y0 + y1, "y values was not added");
+    assert.ok(p0.x === x0, 'x value should be immutable');
+    assert.ok(p0.y === y0, 'y value should be immutable');
 });
 
 QUnit.test("Point.sub test", function(assert) {
@@ -23,10 +23,10 @@ QUnit.test("Point.sub test", function(assert) {
     var p0 = new Point(x0, y0);
     var p1 = new Point(x1, y1);
     var pr = p0.sub(p1);
-    assert.ok(pr.x === x0 - x1, "x values subtracted");
-    assert.ok(pr.y === y0 - y1, "y values subtracted");
-    assert.ok(p0.x === x0, 'x value is immutable');
-    assert.ok(p0.y === y0, 'y value is immutable');
+    assert.ok(pr.x === x0 - x1, "x values were not subtracted");
+    assert.ok(pr.y === y0 - y1, "y values were not subtracted");
+    assert.ok(p0.x === x0, 'x value should be immutable');
+    assert.ok(p0.y === y0, 'y value should be immutable');
 });
 
 QUnit.test("Point.dot test", function(assert) {
@@ -37,9 +37,9 @@ QUnit.test("Point.dot test", function(assert) {
     var p0 = new Point(x0, y0);
     var p1 = new Point(x1, y1);
     var d = p0.dot(p1);
-    assert.ok(d === x0*x1+y0*y1, "dot product calculated");
-    assert.ok(p0.x === x0, 'x value is immutable');
-    assert.ok(p0.y === y0, 'y value is immutable');
+    assert.ok(d === x0*x1+y0*y1, "dot product miscalculated");
+    assert.ok(p0.x === x0, 'x value should be immutable');
+    assert.ok(p0.y === y0, 'y value should be immutable');
 });
 
 QUnit.test("Point.scalarMul", function(assert) {
@@ -48,10 +48,10 @@ QUnit.test("Point.scalarMul", function(assert) {
     var s = 34;
     var p = new Point(x,y);
     var r = p.scalarMul(s);
-    assert.ok(r.x === x * s, "x scalar value multiplied");
-    assert.ok(r.y === y * s, "y scalar value multiplied");
-    assert.ok(p.x === x, 'x value is immutable');
-    assert.ok(p.y === y, 'y value is immutable');
+    assert.ok(r.x === x * s, "x scalar value not multiplied");
+    assert.ok(r.y === y * s, "y scalar value not multiplied");
+    assert.ok(p.x === x, 'x value should be immutable');
+    assert.ok(p.y === y, 'y value should be immutable');
 });
 
 // ==== (Color) ====
@@ -62,7 +62,7 @@ QUnit.test("Color.toRgb", function(assert) {
     var c = new Color(r,g,b);
     var rgb = c.toRgb();
     var expectedValue = 'rgb(255,127,0)';
-    assert.ok(rgb === expectedValue, 'RGB value is correct: ' + rgb + ' === ' + expectedValue);
+    assert.ok(rgb === expectedValue, 'RGB value is not correct: ' + rgb + ' === ' + expectedValue);
 });
 
 // ==== (Camera) ====
@@ -73,4 +73,35 @@ QUnit.test('Camera.MoveRelative', function(assert) {
     var y1 = -24;
     var direction = 0;
     var fov = 45.0;
+    var camera = new Camera(new Point(x0,y0), direction, fov);
+    camera.MoveRelative(new Point(x1,y1));
+    assert.ok(camera.origin.x === x0 + x1, 'camera x origin is not correct');
+    assert.ok(camera.origin.y === y0 + y1, 'camera y origin is not correct');
 }); 
+
+QUnit.test('Camera.Move', function(assert) {
+    var x0 = 0;
+    var y0 = 0;
+    var x1 = 13;
+    var y1 = -16;
+    var direction = 90.0;
+    var fov = 90.0;
+    var camera = new Camera(new Point(x0,y0), direction, fov);
+    camera.Move(new Point(x1,y1));
+    assert.ok(camera.origin.x === x1, 'camera x origin is not correct');
+    assert.ok(camera.origin.y === y1, 'camera y origin is not correct');
+});
+
+QUnit.test('Sphere.intersection trivial intersection', function(assert) {
+    var rox = -10;
+    var roy = 0;
+    var rdx = 1;
+    var rdy = 0;
+    var sox = 0;
+    var soy = 0;
+    var radius = 2;
+    var ray = new Ray(new Point(rox,roy), new Point(rdx,rdy));
+    var sphere = new Sphere(new Point(sox,soy),radius,colors.red);
+    var t = sphere.intersection(ray);
+    assert.ok(t === 8, 'sphere intersection returned ' + t + ' expected 8');
+});

@@ -1,6 +1,5 @@
 "strict";
 
-
 Math.degToRad = function(deg) { return deg * Math.PI / 180.0 }
     
 // === (Point) ===
@@ -56,7 +55,7 @@ var Camera = function(origin, direction, fov) {
 }
 
 Camera.prototype.MoveRelative = function(relativePos) {
-    this.origin.add(relativePos);
+    this.origin = this.origin.add(relativePos);
     return this;
 };
 
@@ -80,7 +79,7 @@ var Sphere = function(center, radius, color) {
 
 Sphere.prototype.intersection = function(ray) {
     var a = ray.vector.dot(ray.vector);
-    var b = ray.vector.scalarMult(2).dot(ray.origin.sub(this.center));
+    var b = ray.vector.scalarMul(2).dot(ray.origin.sub(this.center));
     var c = this.center.dot(this.center) + ray.origin.dot(ray.origin) +
         (-2) * this.center.dot(ray.origin) - this.radius * this.radius;
     if(a === 0) { return undefined; };
