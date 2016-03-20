@@ -122,6 +122,6 @@ QUnit.test('Sphere.intersection trivial intersection', function(assert) {
     var ray = new Ray(new Point(rox,roy), new Point(rdx,rdy));
     var sphere = new Sphere(new Point(sox,soy),radius,colors.red);
     var t = sphere.intersection(ray);
-    assert.ok(t[0] === 8, 'sphere intersection returned ' + t + ' expected 8');
-    assert.ok(t[1] === 12, 'sphere intersection returned ' + t + ' expected 12');
+    assert.ok(t[0] === 8, 'sphere intersection returned ' + t[0] + ' expected 8');
+    assert.ok(t[1] === 12, 'sphere intersection returned ' + t[1] + ' expected 12');
 });
