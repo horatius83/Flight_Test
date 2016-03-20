@@ -24,6 +24,19 @@ Point.prototype.scalarMul = function(s) {
     return new Point(this.x * s, this.y * s);
 };
 
+Point.prototype.magmag = function() {
+    return this.dot(this);
+};
+
+Point.prototype.magnitude = function() {
+    return Math.sqrt(this.magmag())
+};   
+
+Point.prototype.normalized = function() {
+    var inverseMag = 1.0 / this.magnitude();
+    return this.scalarMul(inverseMag);
+};   
+
 // === (Color) ===
 var Color = function(r,g,b) {
     this.r = r;
@@ -67,7 +80,7 @@ Camera.prototype.Move = function(loc) {
 // === (Ray) ===
 var Ray = function(origin, vector) {
     this.origin = origin;
-    this.vector = vector;
+    this.vector = vector.normalized();
 }
 
 // === (Sphere) ===
@@ -78,14 +91,23 @@ var Sphere = function(center, radius, color) {
 };
 
 Sphere.prototype.intersection = function(ray) {
-    var a = ray.vector.dot(ray.vector);
+    /*var a = ray.vector.dot(ray.vector);
     var b = ray.vector.scalarMul(2).dot(ray.origin.sub(this.center));
     var c = this.center.dot(this.center) + ray.origin.dot(ray.origin) +
         (-2) * this.center.dot(ray.origin) - this.radius * this.radius;
     if(a === 0) { return undefined; };
     var t = -b - Math.sqrt(b * b - 4 * a * c) / 2 * a;
     if(t < 0) { return undefined; }
-    else { return t; }
+    else { return t; }*/
+    var a = Math.pow(ray.vector.dot(ray.origin.sub(this.center)),2)
+        - ray.origin.sub(this.center).magnitude() + Math.pow(this.radius, 2);
+    if(a <= 0) {
+        return undefined;
+    } else {
+        var b = ray.vector.dot(ray.origin.sub(this.center)) * -1;
+        var c = Math.sqrt(a);
+        return [b + c, b - c]
+    }
 };
 
 // === (Scene) ===

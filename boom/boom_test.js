@@ -54,6 +54,25 @@ QUnit.test("Point.scalarMul", function(assert) {
     assert.ok(p.y === y, 'y value should be immutable');
 });
 
+QUnit.test("Point.magmag", function(assert) {
+    var point = new Point(10,10);
+    assert.ok(200 === point.magmag(), "The square root of the magnitude expected 200, got " + point.magmag());
+});
+
+QUnit.test("Point.magnitude", function(assert) {
+    var point0 = new Point(0,10.0);
+    var point1 = new Point(-10.0,0);
+    assert.ok(10.0 === point0.magnitude(), "Expected magnitude of 10, but got " + point0.magnitude());
+    assert.ok(10.0 === point1.magnitude(), "Expected magnitude of 10, but got " + point1.magnitude());
+});
+
+QUnit.test("Point.normalized",function(assert) {
+    var point0 = new Point(0,-10);
+    var point1 = new Point(10,0);
+    assert.ok(-1.0 === point0.normalized().y, "Normalized y-value was supposed to be -1.0, but was " + point0.normalized().y);
+    assert.ok(1.0 === point1.normalized().x, "Normalized x-value was supposed to be 1.0, but was " + point1.normalized().x);
+});
+
 // ==== (Color) ====
 QUnit.test("Color.toRgb", function(assert) {
     var r = 1.0;
@@ -103,5 +122,6 @@ QUnit.test('Sphere.intersection trivial intersection', function(assert) {
     var ray = new Ray(new Point(rox,roy), new Point(rdx,rdy));
     var sphere = new Sphere(new Point(sox,soy),radius,colors.red);
     var t = sphere.intersection(ray);
-    assert.ok(t === 8, 'sphere intersection returned ' + t + ' expected 8');
+    assert.ok(t[0] === 8, 'sphere intersection returned ' + t + ' expected 8');
+    assert.ok(t[1] === 12, 'sphere intersection returned ' + t + ' expected 12');
 });
