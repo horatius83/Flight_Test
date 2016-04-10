@@ -8,6 +8,7 @@ window.onload = function() {
     game.fps = 24;
     game.enemy_speed = 1;
     game.preload('chara1.png', 'icon0.png');
+    game.altitude = 3000;
     //game.pushScene(createTitleScene(game)); 
     game.onload = function () {
         game.pushScene(createActionScene(game));
@@ -15,37 +16,34 @@ window.onload = function() {
     game.start();
 };
 
-function playerDead(game) {
-    game.pushScene(createEndingScene(game));
-}
-
-/* a level will have a series of timed triggers that summon
-enemies, effects / background changes, and powerups */
 function createActionScene(game) {
     var scene = new Scene();
-    
-    scene.backgroundColor = '#671F70';
+    // background color
+    var bgcolor_lerp = colorLerp(
+            {start:game.altitude, end:0},
+            {red:0, green:24, blue:51},
+            {red:179, green:215, blue:255});
+
+    //scene.backgroundColor = '#671F70';
+    scene.backgroundColor = bgcolor_lerp(game.altitude);
    
     out('Assets: ' + game.assets)
-    game.player= new Player(150,150);
+    game.player = createSprite(150,150,44,'icon0.png');
 
     var text = new Label('Player: ' + game.player.x + ', ' + game.player.y);
-    text.color = 'black';
+    text.color = 'white';
     text.x = 0;
     text.y = 0;
     scene.addChild(text);
 
-    var laser = new LaserBeam({x:0,y:0},{x:game.width,y:game.height},10,45);
-    out('Laser points :' + laser.points.length);
-    laser.points.forEach(function (x) {
-        out('Adding to scene: ' + JSON.stringify(x));
-        scene.addChild(x);
-    });
-    game.laser = laser;
-
     scene.addEventListener('enterframe', function() {
-        text.text = 'Player: ' + game.player.x + ', ' + game.player.y;
-        var GRAVITY = 4.0;
+        text.text = 'Player: ' + game.player.x + ', ' + game.player.y + ' Altitude: ' + game.altitude;
+        scene.backgroundColor = bgcolor_lerp(game.altitude);
+        var GRAVITY = 4.0 - rand(4);
+        game.altitude -= 10.0;
+        if(game.altitude < 0) {
+            game.pushScene(createEndingScene(game));
+        }
         game.player.y += GRAVITY;
     });
     scene.addEventListener('touchstart', function(e) {
@@ -55,37 +53,33 @@ function createActionScene(game) {
     scene.addEventListener('touchend', function(e) {
 	    game.touched = false;
     });
-    out('Player: ' + game.player.toString());
+    out('Player: ' + printObject(game.player));
     scene.addChild(game.player);
+
+    var laser = new LaserBeam({x:0,y:0},{x:game.width,y:game.height},10,45);
+    laser.points.forEach(function (x) {
+        scene.addChild(x);
+    });
+    game.laser = laser;
     return scene;
 }
 
-var Player = enchant.Class.create(enchant.Sprite, {
-    initialize: function(x,y) {
-        enchant.Sprite.call(this, 16, 16);
-        out('game.assets ' + game.assets['icon0.png']);
-        this.image = game.assets['icon0.png'];
-        this.x = x; this.y = y;
-        this.frame = 44;
-    },
-    toString: function () {
-        return JSON.stringify(this);
-    }
-});
-
-var Laser = enchant.Class.create(enchant.Sprite, {
-    initialize: function(x,y, frame) {
-        enchant.Sprite.call(this, 16, 16);
-        this.image = game.assets['icon0.png']
-        this.x = x; this.y = y;
-        this.frame = frame;
-    }
-});
+var createSprite = function(x, y, frame, image) {
+    var sprite = new Sprite(16,16);
+    sprite.image = game.assets[image];
+    sprite.x = x;
+    sprite.y = y;
+    sprite.frame = frame;
+    return sprite;
+}
 
 var out = function(x) { console.log(x); }
 
 var printObject = function (obj) {
-    return JSON.stringify(obj);
+    var tokens = Object.keys(obj).map(function (key) {
+        return key + ": " + obj[key];
+    });
+    return '{' + tokens.join(', ') + '}'
 }
 
 var LaserBeam = function(start, end, points, frame) {
@@ -95,7 +89,7 @@ var LaserBeam = function(start, end, points, frame) {
     for(var i=0;i<points;i++) {
         var sx = i * delta;
         var sy = laserLerp(sx);
-        this.points.push(new Laser(sx,sy,frame));
+        this.points.push(createSprite(sx,sy,frame,'icon0.png'));
     }
 };
 
@@ -105,11 +99,25 @@ function isOutOfBounds(x, y, width, height) {
 
 function rand(num){ return Math.floor(Math.random() * num) };
 
+function colorLerp(range, startColor, endColor) {
+    function channelLerp(channel) {
+        return lerp({x:range.start,y:startColor[channel]},{x:range.end,y:endColor[channel]});
+    }
+    var r_lerp = channelLerp('red');
+    var g_lerp = channelLerp('green');
+    var b_lerp = channelLerp('blue');
+    return function(x) {
+        var r = Math.floor(r_lerp(x));
+        var g = Math.floor(g_lerp(x));
+        var b = Math.floor(b_lerp(x));
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+    };
+}
+
 function lerp(start, end) {
-    var y = start.y + (end.y - start.y);
     var xd = end.x - start.x;
     return function(x) {
-        return y + (x - start.x)/xd;
+        return start.y + (end.y - start.y) * (x - start.x)/xd;
     };
 }
 
@@ -142,4 +150,8 @@ function createTitleScene(game) {
 	    game.pushScene(createActionScene(game));
     });
     return titleScene;
+}
+
+function playerDead(game) {
+    game.pushScene(createEndingScene(game));
 }

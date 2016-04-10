@@ -137,7 +137,7 @@ var renderer = {
         for(var i=0,angle=startingAngle; i<screen.width; i++, angle = startingAngle + degsPerSlice * i) {
             var color = new Color(Math.random(), Math.random(), Math.random());
             ctx.fillStyle = color.toRgb();
-            ctx.fillRect(i,0,i+1,screen.height);               
+            ctx.fillRect(i,0,i+1,screen.height);
         } 
     }
 };
