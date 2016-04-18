@@ -3,12 +3,14 @@ enchant();
 
 var game = null;
 
+var G = 9.8;
+
 window.onload = function() {
     game = new Game(320, 320);
-    game.fps = 24;
-    game.enemy_speed = 1;
-    game.preload('chara1.png', 'icon0.png');
-    game.altitude = 3000;
+    game.fps = 60;
+    game.preload('chara1.png', 'icon0.png', 'grassDirtPlatform_0.png');
+    game.dragCoefficient = 0.1;
+
     //game.pushScene(createTitleScene(game)); 
     game.onload = function () {
         game.pushScene(createActionScene(game));
@@ -17,19 +19,28 @@ window.onload = function() {
 };
 
 function createActionScene(game) {
+    out('Assets: ' + game.assets)
+    game.player = createSprite(150,150,44,'icon0.png');
+    game.player.velocity = {x:0,y:0};
+    game.player.world = {x:0, y:3000};
+    game.ground = _.range(10).map(function(x) {
+        return createSprite(x * 32,300,0,'grassDirtPlatform_0.png',32,32);
+    });
+    
+
     var scene = new Scene();
     // background color
     var bgcolor_lerp = colorLerp(
-            {start:game.altitude, end:0},
+            {start:game.player.world.y, end:0},
             {red:0, green:24, blue:51},
             {red:179, green:215, blue:255});
 
-    //scene.backgroundColor = '#671F70';
-    scene.backgroundColor = bgcolor_lerp(game.altitude);
+    scene.backgroundColor = bgcolor_lerp(game.player.world.y);
    
-    out('Assets: ' + game.assets)
-    game.player = createSprite(150,150,44,'icon0.png');
-
+    game.ground.forEach(function(x) {
+        scene.addChild(x);
+        x.world = {x:x.x, y:0}
+    });
     var text = new Label('Player: ' + game.player.x + ', ' + game.player.y);
     text.color = 'white';
     text.x = 0;
@@ -37,18 +48,21 @@ function createActionScene(game) {
     scene.addChild(text);
 
     scene.addEventListener('enterframe', function() {
-        text.text = 'Player: ' + game.player.x + ', ' + game.player.y + ' Altitude: ' + game.altitude;
-        scene.backgroundColor = bgcolor_lerp(game.altitude);
-        var GRAVITY = 4.0 - rand(4);
-        game.altitude -= 10.0;
-        if(game.altitude < 0) {
+        text.text = 'Player: ' + game.player.x + ', ' + game.player.y + ' Altitude: ' + game.player.world.y;
+        scene.backgroundColor = bgcolor_lerp(game.player.world.y);
+        var gravity = G / game.fps;
+        game.player.velocity.y += gravity;
+        game.player.world.y -= game.player.velocity.y;
+        if(game.player.world.y < 0) {
             game.pushScene(createEndingScene(game));
         }
-        game.player.y += GRAVITY;
+        game.ground.forEach(function(x) {
+            x.y = game.player.world.y - x.world.y;
+        });
     });
     scene.addEventListener('touchstart', function(e) {
 	    game.touched = true;
-        game.player.y -= 20.0;
+        game.player.velocity.y -= 10.0;
     });
     scene.addEventListener('touchend', function(e) {
 	    game.touched = false;
@@ -64,8 +78,8 @@ function createActionScene(game) {
     return scene;
 }
 
-var createSprite = function(x, y, frame, image) {
-    var sprite = new Sprite(16,16);
+var createSprite = function(x, y, frame, image, width=16, height=16) {
+    var sprite = new Sprite(width,height);
     sprite.image = game.assets[image];
     sprite.x = x;
     sprite.y = y;
